@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Intelligence Hub</title>
+    <!-- Tailwind CSS for high-end modern UI/UX -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for interactive analytics charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #0F172A; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+
+    <!-- Top Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 px-8 py-4 flex justify-between items-center shadow-xs">
+        <div>
+            <h1 class="text-xl font-bold text-slate-900">🚗 Fleet Intelligence Hub</h1>
+            <p class="text-xs text-slate-500">Real-time operational monitoring & analytics dashboard</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200">🟢 Live System</span>
+        </div>
+    </header>
+
+    <div class="flex flex-1">
+        <!-- Sidebar / Data Input & Filters -->
+        <aside class="w-80 bg-white border-r border-slate-200 p-6 flex flex-col gap-6 h-[calc(100vh-73px)] sticky top-[73px] overflow-y-auto">
+            <div>
+                <h3 class="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-2">📁 Data Management</h3>
+                <label class="text-xs text-slate-500 block mb-1">Paste CSV / Excel Data (with headers):</label>
+                <textarea id="csvInput" rows="5" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="captain_id	city	captain_name..."></textarea>
+                <button onclick="loadCustomData()" class="mt-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium py-2 px-4 rounded-lg transition">Update Dashboard</button>
+            </div>
+
+            <hr class="border-slate-100">
+
+            <!-- Filters -->
+            <div>
+                <h3 class="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-3">🔎 Filters</h3>
+                
+                <div class="mb-4">
+                    <label class="text-xs font-medium text-slate-600 block mb-1">Filter by City</label>
+                    <select id="cityFilter" onchange="filterData()" class="w-full text-xs p-2 border border-slate-300 rounded-lg bg-white">
+                        <option value="ALL">All Cities</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="text-xs font-medium text-slate-600 block mb-1">Filter by Limo Company</label>
+                    <select id="companyFilter" onchange="filterData()" class="w-full text-xs p-2 border border-slate-300 rounded-lg bg-white">
+                        <option value="ALL">All Companies</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="text-xs font-medium text-slate-600 block mb-1">Captain Status</label>
+                    <select id="statusFilter" onchange="filterData()" class="w-full text-xs p-2 border border-slate-300 rounded-lg bg-white">
+                        <option value="ALL">All Statuses</option>
+                        <option value="Active">Active</option>
+                        <option value="Blocked">Blocked</option>
+                    </select>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 p-8 overflow-y-auto">
+            
+            <!-- Executive Metrics Cards Grid -->
+            <div class="grid grid-cols-5 gap-5 mb-8">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+                    <p class="text-xs font-medium text-slate-500">Total Captains</p>
+                    <h3 id="metricCaptains" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+                    <span id="metricActiveCaptains" class="text-xs text-emerald-600 font-medium">0 Active</span>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+                    <p class="text-xs font-medium text-slate-500">Total Trips Count</p>
+                    <h3 id="metricTrips" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+                    <p class="text-xs font-medium text-slate-500">Net Wallet Balance</p>
+                    <h3 id="metricBalance" class="text-2xl font-bold text-slate-900 mt-1">$0.00</h3>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+                    <p class="text-xs font-medium text-slate-500">Cash Blocked</p>
+                    <h3 id="metricCashBlocked" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+                    <span class="text-xs text-amber-600 font-medium">Review needed</span>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+                    <p class="text-xs font-medium text-slate-500">Avg Trips / Captain</p>
+                    <h3 id="metricAvgTrips" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid grid-cols-2 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
+                    <h3 class="text-sm font-bold text-slate-800 mb-4">🏆 Trips Distribution by Tier</h3>
+                    <div class="h-64 flex justify-center items-center">
+                        <canvas id="tierChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
+                    <h3 class="text-sm font-bold text-slate-800 mb-4">🏢 Performance per Limo Company</h3>
+                    <div class="h-64 flex justify-center items-center">
+                        <canvas id="companyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Table Section -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-bold text-slate-800">📋 Detailed Captains Database</h3>
+                    <input type="text" id="searchInput" onkeyup="filterData()" placeholder="🔍 Search captain name, ID..." class="text-xs p-2 border border-slate-300 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="overflow-x-auto max-h-96">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr id="tableHeaders" class="bg-slate-50 text-slate-600 border-b border-slate-200 sticky top-0"></tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Link to JavaScript File -->
+    <script src="script.js"></script>
+</body>
+</html>
